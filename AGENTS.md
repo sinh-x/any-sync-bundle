@@ -51,3 +51,46 @@ Test files:
 - `integration/containers.go` – container lifecycle helpers
 - `integration/bundle.go` – bundle process manager
 - `integration/integration_test.go` – test cases
+
+## Kiro System - Spec-Driven Development
+
+This project uses the **Kiro System** for structured feature development.
+
+### Kiro Workflow (3-Phase Approach)
+1. **Requirements** (`requirements.md`) - What needs to be built
+2. **Design** (`design.md`) - How it will be built
+3. **Tasks** (`tasks.md`) - Step-by-step implementation plan
+
+### Directory Structure
+- `.kiro/specs/{feature-name}/` - Individual feature specifications
+- `.kiro/kiro-system-templates/` - Templates and documentation
+  - `requirements_template.md` - Template for requirements
+  - `design_template.md` - Template for technical design
+  - `tasks_template.md` - Template for implementation tasks
+  - `how_kiro_works.md` - Detailed Kiro documentation
+
+### How to Work with Kiro
+
+#### When Creating New Features:
+1. **Check for existing specs first**: Look in `.kiro/specs/` for any existing feature documentation
+2. **Use templates**: Copy templates from `.kiro/kiro-system-templates/` when creating new specs
+3. **Follow the 3-phase process**: Requirements -> Design -> Tasks -> Implementation
+4. **Require approval**: Each phase needs explicit user approval before proceeding
+
+#### Template Usage:
+- **Requirements**: Use `requirements_template.md` to create user stories and EARS acceptance criteria
+- **Design**: Use `design_template.md` for technical architecture and component design
+- **Tasks**: Use `tasks_template.md` to break down implementation into numbered, actionable tasks
+
+#### During Implementation:
+- **Reference requirements**: Always link tasks back to specific requirements
+- **Work incrementally**: Implement tasks one at a time, not all at once
+- **Validate against specs**: Ensure implementations match the design and requirements
+- **Update documentation**: Keep specs updated if changes are needed
+- **Track git info**: Record branch and commit references in tasks.md
+
+#### Key Behaviors:
+- **Always suggest using Kiro** when user wants to build new features
+- **Guide through templates** if user is unfamiliar with the process
+- **Enforce the approval process** - don't skip phases
+- **Maintain traceability** from requirements to code
