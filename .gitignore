@@ -23,6 +23,7 @@ go.work.sum
 
 # env file
 .env
+.env.wasabi
 
 # Intelli-J files
 .idea

@@ -1,0 +1,22 @@
+# Any-Sync-Bundle with Wasabi S3 Storage (Local Testing)
+#
+# Usage:
+#   1. Copy .env.wasabi.example to .env.wasabi and fill in your Wasabi credentials
+#   2. docker compose -f compose.wasabi.yml up -d
+#   3. Wait for container to start and generate client-config.yml
+#   4. Copy data/client-config.yml to your Anytype client
+#
+# The bundle image contains embedded MongoDB and Redis - no external dependencies needed.
+
+services:
+  any-sync-bundle:
+    image: ghcr.io/grishy/any-sync-bundle:1.2.1-2025-12-10
+    container_name: any-sync-bundle-wasabi
+    restart: unless-stopped
+    ports:
+      - "33010:33010"
+      - "33020:33020/udp"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env.wasabi
