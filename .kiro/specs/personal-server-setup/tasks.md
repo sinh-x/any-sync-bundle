@@ -130,16 +130,19 @@ This document breaks down the implementation into actionable tasks. The implemen
 
 ---
 
-## Phase 4: Production Deployment
+## Phase 4: Production Deployment ✅ COMPLETE
 
-- [ ] **4.1** Deploy to AWS EC2
-  - **Description**: Launch EC2, configure security group, Route53 A record, run setup.sh, verify SSL
+- [x] **4.1** Deploy to DigitalOcean Droplet
+  - **Description**: Launch Droplet, configure UFW firewall, Route53 A record, run setup.sh, verify SSL
   - **Deliverables**:
-    - Running production server
-    - Valid SSL certificate
+    - Running production server at `anytype.sinhn.com`
+    - Valid SSL certificate (Let's Encrypt via Traefik)
     - Production client-config.yml
   - **Requirements**: All production requirements
   - **Dependencies**: Phase 2, Phase 3
+  - **Completed**: 2026-01-09
+  - **Server**: DigitalOcean Droplet (1-Click Docker image)
+  - **IP**: 137.184.235.83
 
 ---
 
@@ -193,13 +196,15 @@ Each task is complete when:
 
 ---
 
-**Task Status**: In Progress
+**Task Status**: ✅ COMPLETE
 
-**Current Phase**: Phase 4 - Production Deployment (ready to deploy)
+**Current Phase**: All phases complete
 
-**Progress**: 12/13 tasks (92%)
+**Progress**: 13/13 tasks (100%)
 
 **Last Updated**: 2026-01-09
+
+**Production Server**: `anytype.sinhn.com` (DigitalOcean Droplet)
 
 ## Implementation Notes
 
@@ -241,3 +246,82 @@ Each task is complete when:
    - **Avoid cloud sync** (Google Drive, Dropbox) - sync delays cause "no access to space" errors with stale configs
    - Recommended: Local HTTP server (`python3 -m http.server 8080`), ADB push, email, or direct transfer apps (KDE Connect, LocalSend)
    - If using cloud sync: force refresh on mobile before importing
+
+### Lessons Learned (Phase 4 - Production Deployment)
+
+1. **DigitalOcean 1-Click Docker Image**:
+   - Has UFW firewall enabled by default (unlike standard Droplets)
+   - Only ports 22, 2375, 2376 are open initially
+   - Must manually open: `sudo ufw allow 80,443,33010/tcp && sudo ufw allow 33020/udp`
+
+2. **Hidden Files Not Copied with SCP Glob**:
+   - `scp deploy/* server:/path/` does NOT copy `.env.example` (dotfiles)
+   - Solution: explicitly copy hidden files or use `scp -r deploy/. server:/path/`
+
+3. **Windows Line Endings in .env**:
+   - Causes invisible `\x13` (carriage return) characters in generated configs
+   - Results in corrupted addresses like `anytype.sinhn.com\x13:33010`
+   - Fix: `sed -i 's/\r$//' .env`
+   - Verify clean: `cat -A .env` (should end with `$` not `^M$`)
+
+4. **EXTERNAL_ADDRS Should NOT Include Port**:
+   - Bundle automatically appends ports to the external address
+   - Wrong: `ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "${DOMAIN}:33010"` → generates `domain:33010:33020`
+   - Correct: `ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "${DOMAIN}"` → generates `domain:33020`
+
+5. **Route53 A Record Configuration**:
+   - Subdomain field should only contain the subdomain part (e.g., `anytype`)
+   - Route53 automatically appends the domain (e.g., `.sinhn.com`)
+   - Wrong: entering `anytype.sinhn.com` creates `anytype.sinhn.com.sinhn.com`
+
+6. **Non-Root User Setup (Recommended)**:
+   ```bash
+   adduser <username>
+   usermod -aG sudo <username>
+   usermod -aG docker <username>
+   # Copy SSH keys
+   mkdir -p /home/<username>/.ssh
+   cp ~/.ssh/authorized_keys /home/<username>/.ssh/
+   chown -R <username>:<username> /home/<username>/.ssh
+   ```
+
+7. **Client "No Access to Space" Error**:
+   - Occurs when client has cached data from different network/server
+   - Must clear ALL client data on ALL devices before connecting to new server
+   - Create NEW identity - old recovery phrases won't work on new server instance
+
+8. **Config Regeneration After Fix**:
+   - After fixing .env or docker-compose.yml, must regenerate configs:
+   ```bash
+   docker compose down
+   rm -rf data/bundle/*
+   docker compose up -d
+   ```
+
+9. **DigitalOcean vs AWS**:
+   - DigitalOcean Droplets work fine as alternative to AWS EC2
+   - Minimum: $12/mo (1 vCPU, 2GB RAM) sufficient for personal use
+   - Static IP included free with Droplet (no extra cost)
+
+### Production Deployment Summary
+
+**Server Details:**
+- Provider: DigitalOcean
+- Image: 1-Click Docker on Ubuntu
+- Domain: anytype.sinhn.com
+- IP: 137.184.235.83
+
+**Services Running:**
+- Traefik (SSL termination, reverse proxy)
+- Any-Sync-Bundle (coordinator, consensus, filenode, sync)
+- MongoDB (metadata storage)
+- Redis (cache)
+
+**Storage:**
+- Wasabi S3 (file storage)
+
+**Ports:**
+- 80/tcp (HTTP - Let's Encrypt)
+- 443/tcp (HTTPS)
+- 33010/tcp (Any-Sync DRPC)
+- 33020/udp (Any-Sync QUIC)
