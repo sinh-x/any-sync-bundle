@@ -215,12 +215,36 @@ Each task is complete when:
 1. **Environment Variables**: Use `env_file` directive only - variable names must match container's expected names (ANY_SYNC_BUNDLE_INIT_*)
 
 2. **Config Regeneration**: Delete `data/` directory to regenerate configs when changing EXTERNAL_ADDR
+   - **IMPORTANT**: When server `data/` is deleted, ALL client data must also be cleared
+   - Old recovery phrases will NOT work - the vault no longer exists on the new server
 
 3. **Anytype Client Setup**:
    - Must log out and create NEW identity on self-hosted network
    - Existing vaults cannot be migrated directly
    - Flatpak users: clear `~/.var/app/io.anytype.anytype/` for fresh start
+   - Native Linux: clear `~/.config/anytype/`
+   - macOS: clear `~/Library/Application Support/anytype/`
 
 4. **Connection Errors**:
    - `SkipVerifyNotAllowed`: Client using wrong network identity
    - `disk I/O error`: Corrupted client database, clear Anytype data
+   - `space is missing`: Client trying to recover vault that doesn't exist on server (happens after server reset). Solution: clear client data, create NEW identity (don't use old recovery phrase)
+   - `no access to the space` (mobile): Same issue on mobile - clear app data (Android) or reinstall (iOS), then create new identity
+
+5. **IP Address Changes - Full Reset Required**:
+   - Stop server: `docker compose -f compose.wasabi.yml down`
+   - Delete server data: `rm -rf ./data`
+   - Update `.env.wasabi` with new IP
+   - Clear ALL client data (desktop + mobile)
+   - Start server: `docker compose -f compose.wasabi.yml up -d`
+   - Upload new `client-config.yml` to all clients
+   - Create NEW identity (same on all devices using recovery phrase)
+
+6. **Mobile Client Reset**:
+   - Android: Settings > Apps > Anytype > Storage > Clear Data
+   - iOS: Delete and reinstall the app
+
+7. **Transferring client-config.yml to Mobile**:
+   - **Avoid cloud sync** (Google Drive, Dropbox) - sync delays cause "no access to space" errors with stale configs
+   - Recommended: Local HTTP server (`python3 -m http.server 8080`), ADB push, email, or direct transfer apps (KDE Connect, LocalSend)
+   - If using cloud sync: force refresh on mobile before importing
