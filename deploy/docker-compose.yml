@@ -103,8 +103,8 @@ services:
     networks:
       - anysync
     environment:
-      # External address - clients will connect to this
-      ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "${DOMAIN}:33010"
+      # External address - clients will connect to this (bundle adds ports automatically)
+      ANY_SYNC_BUNDLE_INIT_EXTERNAL_ADDRS: "${DOMAIN}"
       # MongoDB connection
       ANY_SYNC_BUNDLE_INIT_MONGO_URI: "mongodb://mongo:27017/?replicaSet=rs0"
       # Redis connection
